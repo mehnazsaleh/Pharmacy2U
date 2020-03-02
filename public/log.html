@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../styles.css">
+        <title>Audit</title>
+    </head>
+    <body>
+        <h2>Audit Logs</h2>
+        <div id="dataTable" class="divTable paleBlueRows"></div>
+        <script>
+            getLogs();
+
+            async function getLogs(){ 
+                //pull all logs from auditlog Db using fetch and display in table format
+                const response = await fetch('/api');            
+                const data = await response.json();
+
+                var dataTab = '<div class="divTableHeading">'
+                                + '<div class ="divTableRow">' 
+                                + '<div class="divTableHead">Amount</div>'
+                                + '<div class="divTableHead">Convert From</div>'
+                                + '<div class="divTableHead">Convert To</div>'
+                                + '<div class="divTableHead">Converted Value</div>'
+                                + '<div class="divTableHead">Date</div>'
+                                + '<div class="divTableHead">Row ID</div>'
+                                + '</div></div>';
+
+                dataTab = dataTab + '<div class="divTableBody">';
+            
+                for(var row in data){
+                    dataTab = dataTab + '<div class="divTableRow">';
+                    for (var col in data[row]){
+                        dataTab = dataTab + '<div class="divTableCell">' + data[row][col] + '</div>';
+                    }
+                    dataTab = dataTab + '</div>';
+                }
+
+                dataTab = dataTab + '</div>';
+
+                document.getElementById('dataTable').innerHTML = dataTab;
+
+            }
+        </script>
+    </body>
+</html>
