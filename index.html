@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--Using HTML/CSS/Javascript/NodeJS stack to create Currency Conversion Web App-->
+        <link rel="stylesheet" href="../styles.css">
+        <title>Currency Convertor</title>
+    </head>
+    <body>
+        <div class="container">
+            <input id="startVal" placeholder="Amount" required>
+            <select id="selFrom" onchange="refreshOptions()"></select>
+            <label>=></label>
+            <select id="selTo"></select>
+            <button onclick="calculateValue()" id="btnConvert">Convert</button>
+            <input id="convertedVal" placeholder="Converted Amount">
+        </div>
+        <script>
+            var codes = ['GBP','USD','AUD','EUR'];
+            var rates = [];
+            getJSON();
+            populateOptions();
+
+            function calculateValue(){
+                
+                if (validateCurrency()){
+                    var startVal = document.getElementById("startVal").value;
+                    var selFrom = document.getElementById("selFrom");
+                    var convFrom = selFrom.options[selFrom.selectedIndex].value;
+                    var selTo = document.getElementById("selTo");
+                    var convTo = selTo.options[selTo.selectedIndex].value;
+                    var convertedVal = convertCurrency(startVal,convFrom,convTo);
+
+                    document.getElementById("convertedVal").value = convertedVal.toFixed(2);
+
+                    logConversion(startVal,convFrom,convTo,convertedVal);
+                }
+
+            }
+
+            async function logConversion(startVal,convFrom,convTo,convertedVal){
+                const data = { 
+                    'startVal':startVal,
+                    'convFrom':convFrom,
+                    'convTo':convTo,
+                    'convVal':convertedVal
+                };
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':'application/json'
+                    },
+                    body: JSON.stringify(data)
+                };
+                const response = await fetch('/api', options);
+                const json = await response.json();
+            }
+
+            function convertCurrency(startVal,convFrom,convTo){
+                //calculation to allow conversion to and from multiple currencies
+                if(convFrom === "GBP"){
+                    return startVal * rates[convTo];        
+                } else if (convTo === "GBP"){
+                    return startVal / rates[convFrom];
+                } else {
+                    return (startVal / rates[convFrom]) * rates[convTo];
+                }
+            }
+
+            function validateCurrency(){
+                //regex used to validate amount to be converted
+                var currency = document.getElementById("startVal").value;
+                var curFormat = /^\d+(\.\d{1,2})?$/;
+
+                if(curFormat.test(currency) != true){
+                    console.log("Not valid");
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            function populateOptions(){
+                //add initial values to convert from and convert to combo boxes
+                for(var i = 0; i < codes.length; i++){
+                    
+                    var opt = document.createElement("option");
+
+                    opt.value = codes[i];
+                    opt.text = codes[i];
+                    document.getElementById('selFrom').appendChild(opt);
+
+                }
+
+                for(var i = 1; i < codes.length; i++){
+                    
+                    var opt = document.createElement("option");
+
+                    opt.value = codes[i];
+                    opt.text = codes[i];
+                    document.getElementById('selTo').appendChild(opt);
+
+                }
+            } 
+
+            function refreshOptions(){
+                //reload options in convert to field based on convert from selection
+                var selectFrom = document.getElementById('selFrom');
+                var selected = selectFrom.options[selectFrom.selectedIndex].value;
+                
+                //clear convert to combo box
+                document.getElementById('selTo').innerHTML = "";
+
+                for(var i = 0; i < codes.length; i++) {
+                    if(codes[i] !== selected) {  
+                        var opt = document.createElement("option");
+
+                        opt.value = codes[i];
+                        opt.text = codes[i];
+                        
+                        document.getElementById('selTo').appendChild(opt);
+                    }
+                }
+
+            } 
+
+            async function getJSON(){
+                //get currency rates from JSON file
+                var response = await fetch('rates.json');
+                rates = await response.json();
+            }
+
+        </script>
+
+    </body>
+</html>
